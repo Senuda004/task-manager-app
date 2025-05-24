@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Link } from "react-router-dom"
 import {
   AudioWaveform,
   Blocks,
@@ -11,6 +12,9 @@ import {
   Settings2,
   Sparkles,
   Trash2,
+  LayoutDashboard,
+  ListChecks,
+  LogOut,
 } from "lucide-react"
 
 import { NavFavorites } from "@/components/nav-favorites"
@@ -21,11 +25,17 @@ import { TeamSwitcher } from "@/components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
   SidebarRail,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-// This is sample data.
 const data = {
   teams: [
     {
@@ -46,25 +56,15 @@ const data = {
   ],
   navMain: [
     {
-      title: "Search",
+      title: "Dashboard",
       url: "#",
-      icon: Search,
-    },
-    {
-      title: "Ask AI",
-      url: "#",
-      icon: Sparkles,
-    },
-    {
-      title: "Home",
-      url: "#",
-      icon: Home,
+      icon: LayoutDashboard,
       isActive: true,
     },
     {
-      title: "Inbox",
+      title: "Tasks",
       url: "#",
-      icon: Inbox,
+      icon: ListChecks,
       badge: "10",
     },
   ],
@@ -256,19 +256,39 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+interface AppSidebarProps {
+  onLogout?: () => void
+}
+
+export function AppSidebar({
+  onLogout,
+  ...props
+}: AppSidebarProps & React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar className="border-r-0" {...props}>
-      <SidebarHeader>
+    <Sidebar
+      className="border-r border-border bg-white text-black dark:bg-zinc-900 dark:text-white dark:border-zinc-700"
+      {...props}
+    >
+      {/* Header */}
+      <SidebarHeader className="bg-white dark:bg-zinc-900">
         <TeamSwitcher teams={data.teams} />
         <NavMain items={data.navMain} />
       </SidebarHeader>
-      <SidebarContent>
-        <NavFavorites favorites={data.favorites} />
-        <NavWorkspaces workspaces={data.workspaces} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
-      </SidebarContent>
-      <SidebarRail />
+
+      {/* Collapsed Sidebar */}
+      <SidebarRail className="bg-white dark:bg-zinc-900" />
+
+      {/* Footer with Logout Button */}
+      <SidebarFooter className="mt-auto mb-5">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={onLogout} className="bg-gray-700">
+              <LogOut className="h-4 w-4 " />
+              <span>Logout</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   )
 }

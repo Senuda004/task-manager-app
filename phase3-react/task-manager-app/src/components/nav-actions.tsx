@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import {
   ArrowDown,
@@ -37,64 +35,25 @@ import {
 
 const data = [
   [
-    {
-      label: "Customize Page",
-      icon: Settings2,
-    },
-    {
-      label: "Turn into wiki",
-      icon: FileText,
-    },
+    { label: "Customize Page", icon: Settings2 },
+    { label: "Turn into wiki", icon: FileText },
   ],
   [
-    {
-      label: "Copy Link",
-      icon: Link,
-    },
-    {
-      label: "Duplicate",
-      icon: Copy,
-    },
-    {
-      label: "Move to",
-      icon: CornerUpRight,
-    },
-    {
-      label: "Move to Trash",
-      icon: Trash2,
-    },
+    { label: "Copy Link", icon: Link },
+    { label: "Duplicate", icon: Copy },
+    { label: "Move to", icon: CornerUpRight },
+    { label: "Move to Trash", icon: Trash2 },
   ],
   [
-    {
-      label: "Undo",
-      icon: CornerUpLeft,
-    },
-    {
-      label: "View analytics",
-      icon: LineChart,
-    },
-    {
-      label: "Version History",
-      icon: GalleryVerticalEnd,
-    },
-    {
-      label: "Show delete pages",
-      icon: Trash,
-    },
-    {
-      label: "Notifications",
-      icon: Bell,
-    },
+    { label: "Undo", icon: CornerUpLeft },
+    { label: "View analytics", icon: LineChart },
+    { label: "Version History", icon: GalleryVerticalEnd },
+    { label: "Show delete pages", icon: Trash },
+    { label: "Notifications", icon: Bell },
   ],
   [
-    {
-      label: "Import",
-      icon: ArrowUp,
-    },
-    {
-      label: "Export",
-      icon: ArrowDown,
-    },
+    { label: "Import", icon: ArrowUp },
+    { label: "Export", icon: ArrowDown },
   ],
 ]
 
@@ -111,7 +70,7 @@ export function NavActions() {
         Edit Oct 08
       </div>
       <Button variant="ghost" size="icon" className="h-7 w-7">
-        <Star />
+        <Star className="text-foreground dark:text-white" />
       </Button>
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
@@ -120,23 +79,30 @@ export function NavActions() {
             size="icon"
             className="h-7 w-7 data-[state=open]:bg-accent"
           >
-            <MoreHorizontal />
+            <MoreHorizontal className="text-foreground dark:text-white" />
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-56 overflow-hidden rounded-lg p-0"
+          className="w-56 overflow-hidden rounded-lg p-0 bg-white dark:bg-zinc-900 text-black dark:text-white border border-border dark:border-zinc-700"
           align="end"
         >
-          <Sidebar collapsible="none" className="bg-transparent">
+          <Sidebar
+            collapsible="none"
+            className="bg-transparent text-black dark:text-white"
+          >
             <SidebarContent>
               {data.map((group, index) => (
-                <SidebarGroup key={index} className="border-b last:border-none">
+                <SidebarGroup
+                  key={index}
+                  className="border-b border-border dark:border-zinc-700 last:border-none"
+                >
                   <SidebarGroupContent className="gap-0">
                     <SidebarMenu>
                       {group.map((item, index) => (
                         <SidebarMenuItem key={index}>
-                          <SidebarMenuButton>
-                            <item.icon /> <span>{item.label}</span>
+                          <SidebarMenuButton className="hover:bg-accent dark:hover:bg-zinc-800">
+                            <item.icon className="text-muted-foreground dark:text-zinc-400" />
+                            <span>{item.label}</span>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                       ))}

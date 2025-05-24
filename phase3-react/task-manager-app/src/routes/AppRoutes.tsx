@@ -1,22 +1,22 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import Login from "../pages/Login";
-// import Register from "../pages/Register";
-import Dashboard from "../pages/Dashboard";
-// import Profile from "../pages/Profile";
-// import Tasks from "../pages/Tasks";
+import { Routes, Route, Navigate } from "react-router-dom"
+import Login from "../pages/Login"
+import Register from "../pages/Register"
+import Dashboard from "../pages/Dashboard"
+import ForgotPassword from "../pages/ForgotPassword"
+import Tasks from "../pages/Tasks" // ✅ Add this import
 
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" />} />
+      <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<Login />} />
-      {/* <Route path="/register" element={<Register />} /> */}
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/dashboard" element={<Dashboard />} />
-      {/* <Route path="/profile" element={<Profile />} />
-      <Route path="/tasks" element={<Tasks />} /> */}
+      <Route path="/tasks" element={<Tasks />} /> {/* ✅ Add this route */}
       <Route path="*" element={<div>404 - Page Not Found</div>} />
     </Routes>
-  );
+  )
 }
 
-export default AppRoutes;
+export default AppRoutes
