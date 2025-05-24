@@ -13,8 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { TaskTable } from "@/components/task-table"
 import { AddTaskModal } from "@/components/add-task-modal"
-import { ViewTaskModal } from "@/components/view-task-modal" // <-- Import here
-import type { Task as FullTask } from "@/hooks/useTasks"
+import { ViewTaskModal } from "@/components/view-task-modal"
+import { UserProfileModal } from "@/components/user-profile-modal"
 
 type TaskStatus = "To-Do" | "Completed"
 
@@ -52,6 +52,7 @@ export default function Dashboard() {
   const [modalOpen, setModalOpen] = useState(false)
   const [viewModalOpen, setViewModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [profileModalOpen, setProfileModalOpen] = useState(false)
   const navigate = useNavigate()
   const { toast } = useToast()
 
@@ -162,22 +163,15 @@ export default function Dashboard() {
             <Separator orientation="vertical" className="mr-2 h-4" />
           </div>
           <div className="ml-auto px-3 flex items-center gap-4">
-            <button
-              onClick={() => {
-                setEditingTask(null)
-                setModalOpen(true)
-              }}
-              className="text-sm px-3 py-1 rounded border border-[#c1f17e] text-[#c1f17e] hover:bg-[#c1f17e] hover:text-black transition"
-            >
-              + Add Task
-            </button>
-            <Avatar>
-              {user.image ? (
-                <AvatarImage src={user.image} alt={getDisplayName()} />
-              ) : (
-                <AvatarFallback>{getUserInitials()}</AvatarFallback>
-              )}
-            </Avatar>
+            <div className="cursor-pointer" onClick={() => setProfileModalOpen(true)}>
+              <Avatar>
+                {user.image ? (
+                  <AvatarImage src={user.image} alt={getDisplayName()} />
+                ) : (
+                  <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                )}
+              </Avatar>
+            </div>
           </div>
         </header>
 
@@ -254,6 +248,22 @@ export default function Dashboard() {
             if (!open) setEditingTask(null)
           }}
           task={editingTask}
+        />
+        <UserProfileModal
+          open={profileModalOpen}
+          onOpenChange={setProfileModalOpen}
+          user={user}
+          onUpdate={(updatedUser) => {
+            // Ensure updatedUser has all required User properties
+            setUser((prev) => ({
+              ...prev!,
+              ...updatedUser,
+            }))
+            localStorage.setItem("user", JSON.stringify({
+              ...user,
+              ...updatedUser,
+            }))
+          }}
         />
       </SidebarInset>
     </SidebarProvider>

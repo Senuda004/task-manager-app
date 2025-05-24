@@ -11,7 +11,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { TaskTable } from "@/components/task-table"
 import { AddTaskModal } from "@/components/add-task-modal"
-import { ViewTaskModal } from "@/components/view-task-modal" // <-- Import here
+import { ViewTaskModal } from "@/components/view-task-modal"
+import { UserProfileModal } from "@/components/user-profile-modal"
 
 type Task = {
   id: number
@@ -50,6 +51,7 @@ export default function Tasks() {
   const [modalOpen, setModalOpen] = useState(false)
   const [viewModalOpen, setViewModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [profileModalOpen, setProfileModalOpen] = useState(false)
   const navigate = useNavigate()
   const { toast } = useToast()
 
@@ -168,12 +170,15 @@ export default function Tasks() {
             >
               + Add Task
             </button>
-            <Avatar>
-              {user?.image ? (
-                <AvatarImage src={user.image} alt={getDisplayName()} />
-              ) : null}
-              <AvatarFallback>{getUserInitials()}</AvatarFallback>
-            </Avatar>
+            <div className="cursor-pointer" onClick={() => setProfileModalOpen(true)}>
+              <Avatar>
+                {user.image ? (
+                  <AvatarImage src={user.image} alt={getDisplayName()} />
+                ) : (
+                  <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                )}
+              </Avatar>
+            </div>
           </div>
         </header>
 
@@ -236,6 +241,23 @@ export default function Tasks() {
             if (!open) setEditingTask(null)
           }}
           task={editingTask}
+        />
+
+        <UserProfileModal
+          open={profileModalOpen}
+          onOpenChange={setProfileModalOpen}
+          user={user}
+          onUpdate={(updatedUser) => {
+            // Ensure updatedUser has all required User properties
+            setUser((prev) => ({
+              ...prev!,
+              ...updatedUser,
+            }))
+            localStorage.setItem("user", JSON.stringify({
+              ...user,
+              ...updatedUser,
+            }))
+          }}
         />
       </SidebarInset>
     </SidebarProvider>
