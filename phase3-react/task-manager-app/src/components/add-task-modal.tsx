@@ -162,7 +162,7 @@ export const AddTaskModal: React.FC<AddTaskModalProps> = ({
           <Button
             onClick={handleAddOrUpdateTask}
             disabled={isSubmitting}
-            className="bg-c1f17e text-black hover:bg-amber-400"
+            className="border border-[#c1f17e] text-[#c1f17e] hover:bg-[#c1f17e] hover:text-black transition"
           >
             {isSubmitting ? (editingTask ? "Updating..." : "Adding...") : editingTask ? "Update" : "Add"}
           </Button>

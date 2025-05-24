@@ -27,7 +27,7 @@ type TasksResponse = {
 }
 
 // Authentication
-export async function loginUser(username: string, password: string): Promise<LoginResponse> {
+async function loginUser(username: string, password: string): Promise<LoginResponse> {
   const response = await fetch("https://dummyjson.com/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -42,7 +42,7 @@ export async function loginUser(username: string, password: string): Promise<Log
 }
 
 // User Profile
-export async function fetchUserProfile(userId: number) {
+async function fetchUserProfile(userId: number) {
   const response = await fetch(`https://dummyjson.com/users/${userId}`)
 
   if (!response.ok) {
@@ -52,7 +52,7 @@ export async function fetchUserProfile(userId: number) {
   return response.json()
 }
 
-export async function updateUserProfile(userId: number, userData: any) {
+async function updateUserProfile(userId: number, userData: any) {
   const response = await fetch(`https://dummyjson.com/users/${userId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -67,7 +67,7 @@ export async function updateUserProfile(userId: number, userData: any) {
 }
 
 // Task Management
-export async function fetchTasks(userId: number): Promise<Task[]> {
+async function fetchTasks(userId: number): Promise<Task[]> {
   const response = await fetch(`https://dummyjson.com/todos/user/${userId}`)
 
   if (!response.ok) {
@@ -78,7 +78,7 @@ export async function fetchTasks(userId: number): Promise<Task[]> {
   return data.todos
 }
 
-export async function addTask(task: { todo: string; completed: boolean; userId: number }): Promise<Task> {
+async function addTask(task: { todo: string; completed: boolean; userId: number }): Promise<Task> {
   const response = await fetch("https://dummyjson.com/todos/add", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -92,7 +92,7 @@ export async function addTask(task: { todo: string; completed: boolean; userId: 
   return response.json()
 }
 
-export async function updateTask(taskId: number, task: { todo?: string; completed?: boolean }): Promise<Task> {
+async function updateTask(taskId: number, task: { todo?: string; completed?: boolean }): Promise<Task> {
   const response = await fetch(`https://dummyjson.com/todos/${taskId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -106,7 +106,7 @@ export async function updateTask(taskId: number, task: { todo?: string; complete
   return response.json()
 }
 
-export async function deleteTask(taskId: number): Promise<Task> {
+async function deleteTask(taskId: number): Promise<Task> {
   const response = await fetch(`https://dummyjson.com/todos/${taskId}`, {
     method: "DELETE",
   })
@@ -116,4 +116,15 @@ export async function deleteTask(taskId: number): Promise<Task> {
   }
 
   return response.json()
+}
+
+// Default export bundling all functions
+export default {
+  loginUser,
+  fetchUserProfile,
+  updateUserProfile,
+  fetchTasks,
+  addTask,
+  updateTask,
+  deleteTask,
 }

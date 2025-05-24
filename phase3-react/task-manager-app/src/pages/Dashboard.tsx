@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
+
 import { AppSidebar } from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
@@ -12,12 +13,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { TaskTable } from "@/components/task-table"
 import { AddTaskModal } from "@/components/add-task-modal"
+import { ViewTaskModal } from "@/components/view-task-modal" // <-- Import here
+import type { Task as FullTask } from "@/hooks/useTasks"
 
-// Type definitions
+type TaskStatus = "To-Do" | "Completed"
+
 type Task = {
   id: number
   name: string
-  status: "To-Do" | "Completed"
+  status: TaskStatus
   date: string
 }
 
@@ -30,21 +34,10 @@ interface User {
   image?: string
 }
 
-type ToastArgs = {
-  title: string
-  description: string
-  variant?: "default" | "destructive" | null
-  className?: string
-}
-
-// Data fetching function
-async function fetchTasks() {
+async function fetchTasks(): Promise<Task[]> {
   const res = await fetch("https://dummyjson.com/todos?limit=10")
-  if (!res.ok) {
-    throw new Error("Failed to fetch tasks")
-  }
+  if (!res.ok) throw new Error("Failed to fetch tasks")
   const data = await res.json()
-
   return data.todos.map((todo: any) => ({
     id: todo.id,
     name: todo.todo,
@@ -57,20 +50,19 @@ export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
   const [modalOpen, setModalOpen] = useState(false)
+  const [viewModalOpen, setViewModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const navigate = useNavigate()
   const { toast } = useToast()
 
-  const { data: fetchedTasks = [], isLoading } = useQuery({
+  const { data: fetchedTasks = [], isLoading } = useQuery<Task[]>({
     queryKey: ["tasks"],
     queryFn: fetchTasks,
     enabled: !!user,
   })
 
   useEffect(() => {
-    if (fetchedTasks.length) {
-      setTasks(fetchedTasks)
-    }
+    if (fetchedTasks.length) setTasks(fetchedTasks)
   }, [fetchedTasks])
 
   useEffect(() => {
@@ -95,23 +87,18 @@ export default function Dashboard() {
   const handleLogout = () => {
     localStorage.removeItem("token")
     localStorage.removeItem("user")
-
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
       className: "text-white bg-zinc-900",
     })
-
     navigate("/login")
   }
 
   const handleTaskAdded = (newTask: Task) => {
     setTasks((prev) => {
-      const taskExists = prev.find((t) => t.id === newTask.id)
-      if (taskExists) {
-        return prev.map((t) => (t.id === newTask.id ? newTask : t))
-      }
-      return [...prev, newTask]
+      const exists = prev.some((t) => t.id === newTask.id)
+      return exists ? prev.map((t) => (t.id === newTask.id ? newTask : t)) : [...prev, newTask]
     })
     setEditingTask(null)
   }
@@ -129,21 +116,19 @@ export default function Dashboard() {
     })
   }
 
-  const todoCount = tasks.filter((task) => task.status === "To-Do").length
-  const completedCount = tasks.filter((task) => task.status === "Completed").length
-
   const getUserInitials = () => {
     if (!user) return "U"
-    if (user.firstName && user.lastName) {
-      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
-    }
-    return user.username.substring(0, 2).toUpperCase()
+    return user.firstName && user.lastName
+      ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+      : user.username.slice(0, 2).toUpperCase()
   }
 
   const getDisplayName = () => {
-    if (!user) return "User"
-    return user.firstName || user.username
+    return user?.firstName || user?.username || "User"
   }
+
+  const todoCount = tasks.filter((t) => t.status === "To-Do").length
+  const completedCount = tasks.filter((t) => t.status === "Completed").length
 
   if (isLoading || !user) {
     return (
@@ -156,14 +141,12 @@ export default function Dashboard() {
               <Separator orientation="vertical" className="mr-2 h-4" />
             </div>
             <div className="ml-auto px-3">
-              <Avatar>
-                <AvatarFallback>...</AvatarFallback>
-              </Avatar>
+              <Avatar><AvatarFallback>...</AvatarFallback></Avatar>
             </div>
           </header>
-          <div className="flex-1 p-6 bg-[#080f17] text-white flex items-center justify-center">
+          <main className="flex-1 p-6 bg-[#080f17] text-white flex items-center justify-center">
             Loading tasks...
-          </div>
+          </main>
         </SidebarInset>
       </SidebarProvider>
     )
@@ -189,21 +172,22 @@ export default function Dashboard() {
               + Add Task
             </button>
             <Avatar>
-              {user?.image ? (
-                <AvatarImage src={user.image || "/placeholder.svg"} alt={getDisplayName()} />
-              ) : null}
-              <AvatarFallback>{getUserInitials()}</AvatarFallback>
+              {user.image ? (
+                <AvatarImage src={user.image} alt={getDisplayName()} />
+              ) : (
+                <AvatarFallback>{getUserInitials()}</AvatarFallback>
+              )}
             </Avatar>
           </div>
         </header>
 
-        <div className="flex-1 p-6 bg-[#080f17] text-white">
+        <main className="flex-1 p-6 bg-[#080f17] text-white">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-semibold">Welcome to Taskify, {getDisplayName()}</h1>
           </div>
 
           <Tabs defaultValue="overview" className="mb-8">
-            <TabsList className="border-b border-gray-800 bg-transparent w-full justify-start h-auto p-0 mb-6">
+            <TabsList className="border-b border-gray-800 bg-transparent w-full justify-start p-0 mb-6">
               <TabsTrigger
                 value="overview"
                 className="px-4 py-2 data-[state=active]:text-[#c1f17e] data-[state=active]:border-b-2 data-[state=active]:border-[#c1f17e] data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none"
@@ -214,7 +198,7 @@ export default function Dashboard() {
 
             <TabsContent value="overview" className="mt-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <Card className="bg-[#080f17] border-gray-800">
+                <Card className="bg-[#080f17] border border-gray-800">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg text-gray-400">To-Do</CardTitle>
                   </CardHeader>
@@ -222,7 +206,8 @@ export default function Dashboard() {
                     <p className="text-4xl font-bold">{todoCount}</p>
                   </CardContent>
                 </Card>
-                <Card className="bg-[#080f17] border-gray-800">
+
+                <Card className="bg-[#080f17] border border-gray-800">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg text-gray-400">Completed</CardTitle>
                   </CardHeader>
@@ -232,10 +217,17 @@ export default function Dashboard() {
                 </Card>
               </div>
 
-              <TaskTable tasks={tasks} onEdit={handleEditTask} onDelete={handleDeleteTask} />
+              <TaskTable
+                tasks={tasks}
+                onView={(task) => {
+                  setEditingTask(task)
+                  setViewModalOpen(true)
+                }}
+                actionButtons={["view"]}
+              />
             </TabsContent>
           </Tabs>
-        </div>
+        </main>
 
         <AddTaskModal
           open={modalOpen}
@@ -245,20 +237,23 @@ export default function Dashboard() {
           }}
           userId={user.id}
           onTaskAdded={handleTaskAdded}
-          onToast={(args: { title: string; description: string; variant?: string }) => {
-            // Map variant to allowed values
-            let mappedVariant: "default" | "destructive" | null | undefined = undefined;
-            if (args.variant === "default" || args.variant === "destructive" || args.variant === null || args.variant === undefined) {
-              mappedVariant = args.variant as "default" | "destructive" | null | undefined;
-            } else {
-              mappedVariant = undefined;
-            }
+          onToast={(args) => {
             toast({
               ...args,
-              variant: mappedVariant,
-            });
+              variant: ["default", "destructive", null].includes(args.variant ?? "")
+                ? (args.variant as any)
+                : undefined,
+            })
           }}
           editingTask={editingTask}
+        />
+        <ViewTaskModal
+          open={viewModalOpen}
+          onOpenChange={(open) => {
+            setViewModalOpen(open)
+            if (!open) setEditingTask(null)
+          }}
+          task={editingTask}
         />
       </SidebarInset>
     </SidebarProvider>
