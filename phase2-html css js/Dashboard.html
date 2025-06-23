@@ -434,11 +434,14 @@
         user.username = $("#pUsername").value.trim();
         user.password = $("#pPassword").value;
         localStorage.setItem("user", JSON.stringify(user));
+
+        const avatar = $("#avatar");
         if (user.image) {
-          avatar.innerHTML = `<img src="${user.image}" alt="Profile Image" />`;
+          avatar.innerHTML = `<img src="${user.image}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
         } else {
           avatar.textContent = user.username.slice(0, 2).toUpperCase();
         }
+
         close(e.target);
       };
 
