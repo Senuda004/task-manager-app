@@ -103,41 +103,55 @@
     </div>
 
     <script>
-      const f = document.getElementById("regForm"),
-        err = document.getElementById("err"),
-        btn = document.getElementById("btn");
+        // ===== Registration Script =====
 
-      f.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        err.hidden = true;
-        btn.disabled = true;
-        btn.textContent = "Creating…";
-        try {
-          const res = await fetch("https://dummyjson.com/users/add", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              username: username.value,
-              email: email.value,
-              password: password.value,
-              firstName: "New",
-              lastName: "User",
-            }),
-          });
-          if (!res.ok)
-            throw new Error(
-              (await res.json()).message || "Registration failed"
-            );
-          alert("Account created! Please log in.");
-          location.href = "login.html";
-        } catch (e) {
-          err.textContent = e.message;
-          err.hidden = false;
-        } finally {
-          btn.disabled = false;
-          btn.textContent = "Sign up";
-        }
-      });
-    </script>
+        // Get references to the form and relevant elements
+        const f = document.getElementById("regForm"); // Registration form
+        const err = document.getElementById("err");   // Error display element
+        const btn = document.getElementById("btn");   // Submit button
+
+        // Handle form submission
+        f.addEventListener("submit", async (e) => {
+            e.preventDefault();         // Prevent page reload
+            err.hidden = true;          // Hide error initially
+            btn.disabled = true;        // Disable button to avoid multiple submissions
+            btn.textContent = "Creating…"; // Show loading state
+
+            try {
+            // Send registration request to dummy API
+            const res = await fetch("https://dummyjson.com/users/add", {
+                method: "POST",
+                headers: {
+                "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                username: username.value,
+                email: email.value,
+                password: password.value,
+                firstName: "New",    // Placeholder first name
+                lastName: "User",    // Placeholder last name
+                }),
+            });
+
+            // If registration fails, show error
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || "Registration failed");
+            }
+
+            // On success, notify user and redirect to login
+            alert("Account created! Please log in.");
+            location.href = "login.html";
+            } catch (e) {
+            // Show error message if any issue occurs
+            err.textContent = e.message;
+            err.hidden = false;
+            } finally {
+            // Re-enable button and reset text after operation
+            btn.disabled = false;
+            btn.textContent = "Sign up";
+            }
+        });
+        </script>
   </body>
 </html>

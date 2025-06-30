@@ -339,121 +339,171 @@
     </div>
 
     <script>
-      const $ = (s) => document.querySelector(s);
-      const $$ = (s) => document.querySelectorAll(s);
-      const open = (m) => $(m).classList.add("is-open");
-      const close = (el) => el.closest(".modal").classList.remove("is-open");
+        // ===== Utility Functions =====
 
-      $$("[data-close]").forEach((b) => (b.onclick = (e) => close(e.target)));
-      window.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") $$(".modal.is-open").forEach((m) => m.classList.remove("is-open"));
-      });
+        // Shortcut to select a single element
+        const $ = (selector) => document.querySelector(selector);
+        
+        // Shortcut to select multiple elements
+        const $$ = (selector) => document.querySelectorAll(selector);
+        
+        // Opens a modal by adding the `is-open` class
+        const open = (modalSelector) => $(modalSelector).classList.add("is-open");
+        
+        // Closes the modal containing the clicked element
+        const close = (element) => element.closest(".modal").classList.remove("is-open");
 
-      // Auth
-      const token = localStorage.getItem("token"),
-            userStr = localStorage.getItem("user");
-      if (!token || !userStr) {
-        location.href = "login.html";
-        throw "";
-      }
-
-      let user = JSON.parse(userStr);
-      const welcomeName = user.firstName || user.username;
-      $("#welcome").textContent = `Welcome to Taskify, ${welcomeName}`;
-
-      const avatar = $("#avatar");
-      if (user.image) {
-        avatar.innerHTML = `<img src="${user.image}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
-      } else {
-        const initials = (user.firstName?.[0] + user.lastName?.[0]) || user.username.slice(0, 2);
-        avatar.textContent = initials.toUpperCase();
-      }
-
-      // Load tasks
-      let tasks = [];
-      (async () => {
-        const r = await fetch("https://dummyjson.com/todos?limit=10");
-        const js = await r.json();
-        tasks = js.todos.map((t) => ({
-          id: t.id,
-          name: t.todo,
-          status: t.completed ? "Completed" : "To-Do",
-          date: `2023-10-${String(t.id).padStart(2, "0")}`,
-        }));
-        render();
-      })();
-
-      function render() {
-        $("#todoCount").textContent = tasks.filter((t) => t.status === "To-Do").length;
-        $("#completedCount").textContent = tasks.filter((t) => t.status === "Completed").length;
-        const tb = $("#tasksTable tbody");
-        tb.innerHTML = "";
-        tasks.forEach((t) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${t.name}</td>
-            <td>${t.status}</td>
-            <td>${t.date}</td>
-            <td><button class="btn" data-view="${t.id}">View</button></td>
-          `;
-          tb.appendChild(tr);
+        // Add click event listeners to all close buttons in modals
+        $$("[data-close]").forEach((btn) => {
+            btn.onclick = (e) => close(e.target);
         });
-      }
 
-      // View task
-      $("#tasksTable").onclick = (e) => {
-        if (e.target.dataset.view) {
-          const t = tasks.find((x) => x.id == e.target.dataset.view);
-          $("#viewBody").innerHTML = `
-            <div style="margin-bottom: 1rem;">
-              <label style="color:#94a3b8;font-size:.875rem;">Task</label>
-              <div style="font-size:1.125rem;font-weight:600;margin-top:0.25rem;">${t.name}</div>
-            </div>
-            <div style="margin-bottom: 1rem;">
-              <label style="color:#94a3b8;font-size:.875rem;">Status</label>
-              <div style="font-size:1rem;margin-top:0.25rem;">${t.status}</div>
-            </div>
-            <div>
-              <label style="color:#94a3b8;font-size:.875rem;">Date</label>
-              <div style="font-size:1rem;margin-top:0.25rem;">${t.date}</div>
-            </div>
-          `;
-          open("#viewModal");
+        // Close any open modal when the Escape key is pressed
+        window.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+            $$(".modal.is-open").forEach((modal) => modal.classList.remove("is-open"));
+            }
+        });
+
+        // ===== Authentication & User Setup =====
+
+        // Get authentication token and user data from localStorage
+        const token = localStorage.getItem("token");
+        const userStr = localStorage.getItem("user");
+
+        // Redirect to login page if no valid session found
+        if (!token || !userStr) {
+            location.href = "login.html";
+            throw ""; // Stop script execution
         }
-      };
 
-      // Profile
-      avatar.onclick = () => {
-        $("#pUsername").value = user.username || "";
-        $("#pPassword").value = user.password || "";
-        open("#profileModal");
-      };
+        // Parse user JSON string to object
+        let user = JSON.parse(userStr);
 
-      $("#profileForm").onsubmit = (e) => {
-        e.preventDefault();
-        user.username = $("#pUsername").value.trim();
-        user.password = $("#pPassword").value;
-        localStorage.setItem("user", JSON.stringify(user));
+        // Display welcome message using user's first name or username
+        const welcomeName = user.firstName || user.username;
+        $("#welcome").textContent = `Welcome to Taskify, ${welcomeName}`;
 
+        // Set avatar image or initials
         const avatar = $("#avatar");
         if (user.image) {
-          avatar.innerHTML = `<img src="${user.image}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
+            avatar.innerHTML = `<img src="${user.image}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
         } else {
-          avatar.textContent = user.username.slice(0, 2).toUpperCase();
+            const initials = (user.firstName?.[0] + user.lastName?.[0]) || user.username.slice(0, 2);
+            avatar.textContent = initials.toUpperCase();
         }
 
-        close(e.target);
-      };
+        // ===== Task Data Loading =====
 
-      // Navigation
-      $("#btnLogout").onclick = () => {
-        localStorage.clear();
-        location.href = "login.html";
-      };
-      $("#hamburger").onclick = (e) => {
-        document.body.classList.toggle("menu-open");
-        e.currentTarget.classList.toggle("x");
-      };
-    </script>
+        let tasks = [];
+
+        // Immediately invoked function to fetch and display tasks
+        (async () => {
+            const response = await fetch("https://dummyjson.com/todos?limit=10");
+            const data = await response.json();
+
+            // Map API response to simplified local structure
+            tasks = data.todos.map((task) => ({
+            id: task.id,
+            name: task.todo,
+            status: task.completed ? "Completed" : "To-Do",
+            date: `2023-10-${String(task.id).padStart(2, "0")}`, // Simulated date
+            }));
+
+            render(); // Populate UI with fetched tasks
+        })();
+
+        // ===== Render Dashboard =====
+
+        function render() {
+            // Update task counts
+            $("#todoCount").textContent = tasks.filter((t) => t.status === "To-Do").length;
+            $("#completedCount").textContent = tasks.filter((t) => t.status === "Completed").length;
+
+            // Build and insert task rows
+            const tbody = $("#tasksTable tbody");
+            tbody.innerHTML = ""; // Clear current table
+
+            tasks.forEach((t) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${t.name}</td>
+                <td>${t.status}</td>
+                <td>${t.date}</td>
+                <td><button class="btn" data-view="${t.id}">View</button></td>
+            `;
+            tbody.appendChild(tr);
+            });
+        }
+
+        // ===== View Task Modal =====
+
+        // Event delegation to handle all "View" buttons
+        $("#tasksTable").onclick = (e) => {
+            if (e.target.dataset.view) {
+            const taskId = e.target.dataset.view;
+            const task = tasks.find((t) => t.id == taskId);
+
+            // Populate view modal with task details
+            $("#viewBody").innerHTML = `
+                <div style="margin-bottom: 1rem;">
+                <label style="color:#94a3b8;font-size:.875rem;">Task</label>
+                <div style="font-size:1.125rem;font-weight:600;margin-top:0.25rem;">${task.name}</div>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                <label style="color:#94a3b8;font-size:.875rem;">Status</label>
+                <div style="font-size:1rem;margin-top:0.25rem;">${task.status}</div>
+                </div>
+                <div>
+                <label style="color:#94a3b8;font-size:.875rem;">Date</label>
+                <div style="font-size:1rem;margin-top:0.25rem;">${task.date}</div>
+                </div>
+            `;
+            open("#viewModal");
+            }
+        };
+
+        // ===== Profile Modal & Save =====
+
+        // Open the profile modal and populate fields
+        avatar.onclick = () => {
+            $("#pUsername").value = user.username || "";
+            $("#pPassword").value = user.password || "";
+            open("#profileModal");
+        };
+
+        // Handle profile form submission
+        $("#profileForm").onsubmit = (e) => {
+            e.preventDefault();
+
+            // Update user values and save to localStorage
+            user.username = $("#pUsername").value.trim();
+            user.password = $("#pPassword").value;
+            localStorage.setItem("user", JSON.stringify(user));
+
+            // Update avatar
+            if (user.image) {
+            avatar.innerHTML = `<img src="${user.image}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
+            } else {
+            avatar.textContent = user.username.slice(0, 2).toUpperCase();
+            }
+
+            close(e.target); // Close modal
+        };
+
+        // ===== Logout and Sidebar Toggle =====
+
+        // Clear session and redirect to login
+        $("#btnLogout").onclick = () => {
+            localStorage.clear();
+            location.href = "login.html";
+        };
+
+        // Toggle sidebar visibility on mobile
+        $("#hamburger").onclick = (e) => {
+            document.body.classList.toggle("menu-open");
+            e.currentTarget.classList.toggle("x"); // Change hamburger icon style
+        };
+        </script>
   </body>
 </html>

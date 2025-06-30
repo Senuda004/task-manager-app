@@ -107,37 +107,58 @@
     </div>
 
     <script>
-      const f = document.getElementById("loginForm"),
-        err = document.getElementById("err"),
-        btn = document.getElementById("btn");
-      f.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        err.hidden = true;
-        btn.disabled = true;
-        btn.textContent = "Logging in…";
-        try {
-          const res = await fetch("https://dummyjson.com/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              username: username.value,
-              password: password.value,
-            }),
-          });
-          if (!res.ok)
-            throw new Error((await res.json()).message || "Login failed");
-          const data = await res.json();
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("user", JSON.stringify(data));
-          location.href = "dashboard.html";
-        } catch (e) {
-          err.textContent = e.message;
-          err.hidden = false;
-        } finally {
-          btn.disabled = false;
-          btn.textContent = "Login";
-        }
-      });
-    </script>
+        // ===== Login Script =====
+
+        // Get references to form and UI elements
+        const f = document.getElementById("loginForm"); // The login form
+        const err = document.getElementById("err");     // Error message element
+        const btn = document.getElementById("btn");     // Submit/login button
+
+        // Listen for form submission
+        f.addEventListener("submit", async (e) => {
+            e.preventDefault();       // Prevent default form submission (page reload)
+            err.hidden = true;        // Hide error message (if any)
+            btn.disabled = true;      // Disable button to prevent multiple clicks
+            btn.textContent = "Logging in…"; // Show loading state
+
+            try {
+            // Send POST request to dummy login API
+            const res = await fetch("https://dummyjson.com/auth/login", {
+                method: "POST",
+                headers: {
+                "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                username: username.value,
+                password: password.value,
+                }),
+            });
+
+            // If response is not OK (401 or 500), throw an error
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || "Login failed");
+            }
+
+            // Parse response data
+            const data = await res.json();
+
+            // Store token and user data in localStorage
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data));
+
+            // Redirect to dashboard
+            location.href = "dashboard.html";
+            } catch (e) {
+            // Show error message if login fails
+            err.textContent = e.message;
+            err.hidden = false;
+            } finally {
+            // Re-enable button and reset text regardless of success/failure
+            btn.disabled = false;
+            btn.textContent = "Login";
+            }
+        });
+        </script>
   </body>
 </html>
